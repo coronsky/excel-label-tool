@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)file:///C:/Users/hiro/Downloads/excel_label_1.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excelラベル抽出ツール</title>
+<link rel="stylesheet" href="./Excelラベル抽出ツール_files/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: #f5f5f0; color: #111; min-height: 100vh; padding: 2rem 1rem; }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; color: #111; }
+  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  #drop-zone { border: 1.5px dashed rgba(0,0,0,0.2); border-radius: 12px; padding: 2.5rem 2rem; text-align: center; cursor: pointer; transition: background 0.15s; }
+  #drop-zone:hover { background: #f5f5f0; }
+  #drop-zone i { font-size: 32px; color: #888; display: block; margin-bottom: 0.75rem; }
+  label.file-label { display: inline-block; cursor: pointer; }
+  label.file-label span { font-size: 13px; padding: 6px 14px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; color: #555; }
+  select, input[type=number] { width: 100%; padding: 8px 10px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; background: #fff; color: #111; font-family: inherit; }
+  button { font-family: inherit; cursor: pointer; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: transparent; color: #111; padding: 7px 14px; font-size: 13px; transition: background 0.12s, transform 0.08s; display: inline-flex; align-items: center; gap: 6px; }
+  button:hover { background: #f0f0eb; }
+  button:active { transform: scale(0.98); }
+  button.primary { width: 100%; padding: 10px; font-size: 15px; font-weight: 500; justify-content: center; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .label-sm { font-size: 13px; color: #666; display: block; margin-bottom: 4px; }
+  .info-text { font-size: 13px; color: #888; margin-bottom: 1rem; }
+  .row-header { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+  .row-header span { font-size: 11px; color: #999; }
+  .cell-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .orig-cell { background: #f5f5f0; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; min-height: 44px; }
+  .orig-cell span { font-size: 13px; color: #777; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .copy-cell { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
+  .copy-cell button { width: 100%; min-height: 44px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; font-size: 14px; border: none; border-radius: 0; background: transparent; cursor: pointer; text-align: left; }
+  .copy-cell button i { font-size: 15px; flex-shrink: 0; color: #aaa; }
+  .copy-cell button span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #111; font-weight: 500; }
+  .copy-cell.done { background: #e8f5e9; border-color: #81c784; }
+  .seq-banner { display: none; background: #e3f2fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 0.75rem; justify-content: space-between; align-items: center; }
+  .seq-banner span { font-size: 14px; color: #1565c0; }
+  .seq-banner .counter { font-size: 13px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 0.5px solid rgba(0,0,0,0.08); gap: 8px; }
+  .summary-row:nth-child(odd) { background: #fff; }
+  .summary-row:nth-child(even) { background: #f9f9f6; }
+  .summary-total { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; background: #f5f5f0; }
+  .summary-table { border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; overflow: hidden; }
+  .section-title { font-size: 14px; font-weight: 500; color: #111; }
+  .hint { font-size: 12px; color: #aaa; margin-top: 0.5rem; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; gap: 8px; flex-wrap: wrap; }
+  .flex-gap { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><i class="ti ti-tags"></i> Excelラベル抽出ツール</h1>
+
+  <div id="drop-zone" ondragover="event.preventDefault();this.style.background=&#39;#ebebе6&#39;" ondragleave="this.style.background=&#39;&#39;" ondrop="handleDrop(event)">
+    <i class="ti ti-table-import"></i>
+    <p style="font-size:15px;color:#666;margin-bottom:0.25rem;" id="drop-label">Excelファイルをここにドロップ</p>
+    <p style="font-size:13px;color:#aaa;margin-bottom:1rem;">.xlsx / .xls</p>
+    <label class="file-label">
+      <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="handleFile(this.files[0])">
+      <span>ファイルを選択</span>
+    </label>
+  </div>
+
+  <div id="settings" style="display:none;margin-top:1rem;" class="card">
+    <div class="grid2" style="margin-bottom:1rem;">
+      <div>
+        <span class="label-sm">名前列</span>
+        <select id="col-sel"></select>
+      </div>
+      <div>
+        <span class="label-sm">ヘッダースキップ行数</span>
+        <select id="skip-count">
+          <option value="0">スキップなし</option>
+          <option value="1">1行</option>
+          <option value="2">2行</option>
+          <option value="3" selected="">3行（デフォルト）</option>
+          <option value="4">4行</option>
+          <option value="5">5行</option>
+        </select>
+      </div>
+    </div>
+    <p class="info-text">全シートから一括抽出。H列=枚数、I列=ショップとして集計します。</p>
+    <button class="primary" onclick="showAll()">
+      <i class="ti ti-layout-grid"></i> 全シートから抽出する
+    </button>
+  </div>
+
+  <div id="cells-wrap" style="display:none;margin-top:1rem;">
+    <div class="topbar">
+      <p style="font-size:13px;color:#666;margin:0;" id="cell-info"></p>
+      <div class="flex-gap">
+        <button id="seq-btn" onclick="seqNext()" style="font-weight:500;">
+          <i class="ti ti-player-play"></i> 順番コピー開始
+        </button>
+        <button onclick="resetSeq()" title="リセット">
+          <i class="ti ti-refresh"></i>
+        </button>
+      </div>
+    </div>
+    <div class="seq-banner" id="seq-banner">
+      <span id="seq-label"></span>
+      <span class="counter" id="seq-counter"></span>
+    </div>
+    <div class="row-header">
+      <span>オリジナル</span>
+      <span>抽出後（コピー用）</span>
+    </div>
+    <div id="cell-grid" style="display:flex;flex-direction:column;gap:6px;"></div>
+  </div>
+
+  <div id="summary-wrap" style="display:none;margin-top:1.5rem;" class="card">
+    <div class="topbar">
+      <span class="section-title">ショップ別集計</span>
+      <button id="copy-all-counts-btn" onclick="copyAllCounts()">
+        <i class="ti ti-copy"></i> 枚数をまとめてコピー
+      </button>
+    </div>
+    <div id="summary-table" class="summary-table"></div>
+    <p class="hint">枚数のみを改行区切りでコピーします（合計は除く）。</p>
+  </div>
+</div>
+
+<script src="./Excelラベル抽出ツール_files/xlsx.full.min.js.ダウンロード"></script>
+<script>
+let workbook = null;
+let currentNames = [];
+let summaryData = [];
+let seqIndex = -1;
+
+const REMOVE_WORDS = [
+  'ハート','はーと','heart',
+  '肉球','にくきゅう',
+  '星','ほし','スター','star',
+  'リボン','りぼん','ribbon',
+  'フラワー','flower','花','はな',
+  'チェック','check',
+  'ダイヤ','ダイヤモンド',
+  'クローバー','clover',
+  'ムーン','moon','月','つき',
+  'サン','sun','太陽',
+  'キラキラ','きらきら',
+];
+
+function stripText(str) {
+  let s = str;
+  s = s.replace(/[（(][^）)]*[）)]/g, '');
+  const pattern = new RegExp(REMOVE_WORDS.map(w => w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'), 'gi');
+  s = s.replace(pattern, '');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      workbook = XLSX.read(e.target.result, { type: 'array' });
+      populateCols();
+      document.getElementById('settings').style.display = '';
+      document.getElementById('drop-label').textContent = file.name + '（' + workbook.SheetNames.length + 'シート）';
+    } catch(err) { alert('読み込み失敗: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function populateCols() {
+  const ws = workbook.Sheets[workbook.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+  if (!data || !data.length) return;
+  const skip = parseInt(document.getElementById('skip-count').value) || 3;
+  const headerRow = data[skip] || data[0];
+  const colSel = document.getElementById('col-sel');
+  colSel.innerHTML = '';
+  headerRow.forEach((h, i) => {
+    const opt = document.createElement('option');
+    const letter = String.fromCharCode(65 + i);
+    opt.value = i;
+    opt.textContent = h ? letter + '列: ' + h : letter + '列';
+    colSel.appendChild(opt);
+  });
+}
+
+function getAllRows() {
+  const colIdx = parseInt(document.getElementById('col-sel').value);
+  const skip = parseInt(document.getElementById('skip-count').value) || 3;
+  const allRows = [];
+  workbook.SheetNames.forEach(sheetName => {
+    const ws = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+    data.slice(skip).forEach(row => {
+      const raw = String(row[colIdx] || '').trim();
+      if (!raw) return;
+      const name = stripText(raw);
+      if (!name) return;
+      allRows.push({ name, original: raw, shop: String(row[8] || '').trim(), count: parseInt(row[7]) || 0 });
+    });
+  });
+  return allRows;
+}
+
+function showAll() {
+  const rows = getAllRows();
+  if (!rows.length) { alert('データが見つかりません'); return; }
+  currentNames = rows.map(r => r.name);
+  seqIndex = -1;
+  updateSeqBtn();
+
+  const grid = document.getElementById('cell-grid');
+  grid.innerHTML = '';
+  rows.forEach((row, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'cell-row';
+
+    const orig = document.createElement('div');
+    orig.className = 'orig-cell';
+    const origText = document.createElement('span');
+    origText.textContent = row.original;
+    orig.appendChild(origText);
+
+    const cell = document.createElement('div');
+    cell.className = 'copy-cell';
+    cell.id = 'cell-' + i;
+    const btn = document.createElement('button');
+    btn.id = 'btn-' + i;
+    btn.setAttribute('aria-label', row.name + 'をコピー');
+    const icon = document.createElement('i');
+    icon.className = 'ti ti-copy';
+    const txt = document.createElement('span');
+    txt.textContent = row.name;
+    btn.appendChild(icon);
+    btn.appendChild(txt);
+    btn.onclick = () => copySingle(row.name, i);
+    cell.appendChild(btn);
+
+    wrap.appendChild(orig);
+    wrap.appendChild(cell);
+    grid.appendChild(wrap);
+  });
+
+  document.getElementById('cell-info').textContent = '全' + workbook.SheetNames.length + 'シート / ' + currentNames.length + '件';
+  document.getElementById('cells-wrap').style.display = '';
+  document.getElementById('seq-banner').style.display = 'none';
+
+  const shopMap = {};
+  rows.forEach(r => { if (r.shop) shopMap[r.shop] = (shopMap[r.shop] || 0) + r.count; });
+  summaryData = Object.entries(shopMap).sort((a,b) => a[0].localeCompare(b[0], 'ja'));
+  renderSummary();
+}
+
+function updateSeqBtn() {
+  const btn = document.getElementById('seq-btn');
+  if (seqIndex < 0) btn.innerHTML = '<i class="ti ti-player-play"></i> 順番コピー開始';
+  else if (seqIndex >= currentNames.length) btn.innerHTML = '<i class="ti ti-check"></i> 完了！';
+  else btn.innerHTML = '<i class="ti ti-player-play"></i> 次をコピー（' + (seqIndex+1) + '/' + currentNames.length + '）';
+}
+
+function resetSeq() {
+  seqIndex = -1;
+  updateSeqBtn();
+  document.getElementById('seq-banner').style.display = 'none';
+  currentNames.forEach((_, i) => {
+    const cell = document.getElementById('cell-' + i);
+    const btn = document.getElementById('btn-' + i);
+    if (cell) { cell.style.background=''; cell.style.borderColor=''; cell.classList.remove('done'); }
+    if (btn) btn.querySelector('i').className = 'ti ti-copy';
+  });
+}
+
+async function seqNext() {
+  if (!currentNames.length) return;
+  if (seqIndex < 0) seqIndex = 0;
+  if (seqIndex >= currentNames.length) { resetSeq(); return; }
+  const name = currentNames[seqIndex];
+  try {
+    await navigator.clipboard.writeText(name);
+    highlightCell(seqIndex, true);
+    const banner = document.getElementById('seq-banner');
+    banner.style.display = 'flex';
+    document.getElementById('seq-label').textContent = 'コピー済み：' + name;
+    document.getElementById('seq-counter').textContent = (seqIndex+1) + ' / ' + currentNames.length;
+    const cell = document.getElementById('cell-' + seqIndex);
+    if (cell) cell.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    seqIndex++;
+    updateSeqBtn();
+    if (seqIndex >= currentNames.length) document.getElementById('seq-label').textContent = '全件コピー完了！';
+  } catch(err) { alert('コピーに失敗しました'); }
+}
+
+async function copySingle(name, idx) {
+  try {
+    await navigator.clipboard.writeText(name);
+    highlightCell(idx, false);
+    const btn = document.getElementById('btn-' + idx);
+    if (btn) {
+      btn.querySelector('i').className = 'ti ti-check';
+      setTimeout(() => { btn.querySelector('i').className = 'ti ti-copy'; }, 1200);
+    }
+  } catch(err) { alert('コピーに失敗しました'); }
+}
+
+function highlightCell(idx, persist) {
+  const cell = document.getElementById('cell-' + idx);
+  if (!cell) return;
+  cell.classList.add('done');
+  if (!persist) setTimeout(() => { cell.classList.remove('done'); }, 1200);
+}
+
+function renderSummary() {
+  if (!summaryData.length) return;
+  const total = summaryData.reduce((s,[,v]) => s+v, 0);
+  const tbl = document.getElementById('summary-table');
+  let html = summaryData.map(([shop, cnt]) =>
+    '<div class="summary-row"><span style="font-size:14px;">' + shop + '</span><span style="font-size:14px;font-weight:500;">' + cnt + '枚</span></div>'
+  ).join('');
+  html += '<div class="summary-total"><span style="font-size:13px;color:#888;">合計</span><span style="font-size:15px;font-weight:500;">' + total + '枚</span></div>';
+  tbl.innerHTML = html;
+  document.getElementById('summary-wrap').style.display = '';
+}
+
+async function copyAllCounts() {
+  if (!summaryData.length) return;
+  const text = summaryData.map(([,cnt]) => String(cnt)).join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copy-all-counts-btn');
+    btn.innerHTML = '<i class="ti ti-check"></i> コピーしました';
+    setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy"></i> 枚数をまとめてコピー'; }, 1800);
+  } catch(err) { alert('コピーに失敗しました'); }
+}
+</script>
+
+
+</body></html>
