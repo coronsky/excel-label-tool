@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Excelラベル抽出ツール</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <header class="app-header">
+      <span class="app-title">Excelラベル抽出ツール</span>
+      <button id="reload-btn" class="btn btn-ghost-inv" style="display:none">別のファイルを開く</button>
+    </header>
+
+    <main class="app-main">
+
+      <!-- Drop zone -->
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-icon">📂</div>
+        <div class="drop-primary">Excelファイルをここにドロップしてください</div>
+        <div class="drop-secondary">.xlsx / .xls 対応</div>
+        <button id="open-file-btn" class="open-file-btn">ファイルを選択</button>
+      </div>
+
+      <!-- Error message -->
+      <div id="error-msg" class="error-msg" style="display:none"></div>
+
+      <!-- Content (shown after file load) -->
+      <div id="content" class="content" style="display:none">
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div id="file-info" class="file-info"></div>
+          <div class="toolbar-actions">
+            <button id="seq-copy-btn" class="btn btn-primary">▶ 順番コピー</button>
+            <span id="copy-status" class="copy-status">0 / 0 コピー済み</span>
+            <button id="reset-copy-btn" class="btn btn-ghost">リセット</button>
+          </div>
+        </div>
+
+        <!-- Data area: headers + scrollable grid in one container -->
+        <div class="data-wrapper">
+          <div id="data-grid" class="data-grid">
+            <!-- Headers and rows rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Shop aggregation -->
+        <div id="shop-section" class="shop-section" style="display:none">
+          <div class="shop-section-header">
+            <h2 class="shop-title">ショップ別集計（H列×I列）</h2>
+            <button id="bulk-copy-btn" class="btn btn-success">枚数を一括コピー（数字のみ）</button>
+          </div>
+          <div class="shop-table-header">
+            <span>ショップ名</span>
+            <span>枚数</span>
+          </div>
+          <div id="shop-list" class="shop-list"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

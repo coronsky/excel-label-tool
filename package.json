@@ -1,0 +1,15 @@
+{
+  "name": "excel-label-tool",
+  "version": "1.0.0",
+  "description": "Excelラベル抽出ツール",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}
