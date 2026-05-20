@@ -1,0 +1,384 @@
+/* ─── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+  font-size: 14px;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── App layout ────────────────────────────────────────────────────────────── */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-header {
+  flex-shrink: 0;
+  height: 48px;
+  background: #2d3a8c;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+}
+
+.app-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── Drop zone ─────────────────────────────────────────────────────────────── */
+.drop-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 3px dashed #b4bedb;
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: default;
+}
+
+.drop-zone.drag-over {
+  border-color: #2d3a8c;
+  background: #eceefc;
+}
+
+.drop-icon  { font-size: 52px; line-height: 1; }
+.drop-primary  { font-size: 18px; font-weight: 700; color: #2d3a8c; }
+.drop-secondary { font-size: 13px; color: #999; }
+
+.open-file-btn {
+  margin-top: 6px;
+  padding: 9px 28px;
+  background: #2d3a8c;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.open-file-btn:hover { background: #3d4aac; }
+
+/* ─── Error ─────────────────────────────────────────────────────────────────── */
+.error-msg {
+  background: #fff0f0;
+  border: 1px solid #f9a0a0;
+  color: #c00;
+  padding: 10px 16px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+/* ─── Content ───────────────────────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── Toolbar ───────────────────────────────────────────────────────────────── */
+.toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 9px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+.file-info {
+  flex: 1;
+  font-size: 13px;
+  color: #556;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.copy-status {
+  font-size: 13px;
+  color: #667;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────────── */
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary { background: #2d3a8c; color: #fff; }
+.btn-primary:hover { background: #3d4aac; }
+
+.btn-success { background: #2e7d32; color: #fff; }
+.btn-success:hover { background: #388e3c; }
+.btn-success:disabled { background: #a5d6a7; cursor: default; }
+
+.btn-ghost {
+  background: transparent;
+  color: #778;
+  border: 1px solid #dde;
+}
+.btn-ghost:hover { background: #f0f0f8; }
+
+.btn-ghost-inv {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.3);
+  font-size: 12px;
+  padding: 5px 14px;
+}
+.btn-ghost-inv:hover { background: rgba(255,255,255,.25); }
+
+/* ─── Data grid ─────────────────────────────────────────────────────────────── */
+.data-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #e8eaf0;
+}
+
+.data-grid {
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 6px;
+  padding: 4px;
+  align-content: start;
+}
+
+/* Custom scrollbar */
+.data-grid::-webkit-scrollbar { width: 8px; }
+.data-grid::-webkit-scrollbar-track { background: #e8eaf0; border-radius: 4px; }
+.data-grid::-webkit-scrollbar-thumb { background: #bbbfd4; border-radius: 4px; }
+.data-grid::-webkit-scrollbar-thumb:hover { background: #9fa3be; }
+
+/* Column headers (sticky, first row in grid) */
+.grid-col-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #d4d8ec !important;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #445;
+  border-radius: 5px;
+}
+
+/* ─── Grid cells ────────────────────────────────────────────────────────────── */
+.grid-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  min-height: 40px;
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+.original-cell {
+  background: #fff;
+  color: #556;
+  border: 1px solid #e4e6ee;
+}
+
+/* Extracted: full-width button */
+.extracted-btn {
+  background: #eef4ff;
+  border: 1.5px solid #aac8f0;
+  color: #1a3a70;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  width: 100%;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s, box-shadow 0.1s;
+}
+
+.extracted-btn:hover {
+  background: #d8ebff;
+  border-color: #4a90d0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(45, 100, 200, 0.18);
+}
+
+.extracted-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Sequential active state */
+.extracted-btn.seq-active {
+  background: #fff8e0;
+  border-color: #e8a000;
+  color: #7a4000;
+}
+
+/* Flash animations */
+.extracted-btn.flash-click {
+  animation: flashClick 0.55s ease forwards;
+}
+@keyframes flashClick {
+  0%   { background: #b8f0b8; border-color: #40b040; }
+  100% { background: #eef4ff; border-color: #aac8f0; }
+}
+
+.extracted-btn.seq-active.flash-seq {
+  animation: flashSeq 0.55s ease forwards;
+}
+@keyframes flashSeq {
+  0%   { background: #ffe060; border-color: #d09000; }
+  100% { background: #fff8e0; border-color: #e8a000; }
+}
+
+/* Row numbers */
+.row-num {
+  font-size: 11px;
+  color: #bbc;
+  min-width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.extracted-btn .row-num { color: #89a; }
+.extracted-btn.seq-active .row-num { color: #b07040; }
+
+/* Cell text */
+.cell-text {
+  flex: 1;
+  word-break: break-all;
+}
+
+/* Copy hint badge (visible on hover) */
+.copy-hint {
+  font-size: 10px;
+  font-weight: 700;
+  color: #89a;
+  background: #d0e8ff;
+  border-radius: 3px;
+  padding: 2px 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.extracted-btn:hover .copy-hint { opacity: 1; }
+.extracted-btn.seq-active .copy-hint { background: #ffe8a0; color: #b07000; }
+
+/* ─── Shop section ──────────────────────────────────────────────────────────── */
+.shop-section {
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  padding: 12px 16px;
+  max-height: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.shop-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334;
+}
+
+.shop-table-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #99a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.shop-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.shop-list::-webkit-scrollbar { width: 6px; }
+.shop-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+.shop-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #f4f4f8;
+  transition: background 0.1s;
+}
+
+.shop-row:last-child { border-bottom: none; }
+.shop-row:hover { background: #f6f7fc; }
+
+.shop-name { color: #334; }
+.shop-qty {
+  font-weight: 700;
+  color: #2d3a8c;
+  min-width: 42px;
+  text-align: right;
+}
