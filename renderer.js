@@ -354,7 +354,7 @@ function renderShopAggregation() {
   document.querySelector('.shop-title').textContent =
     `集計（${qtyLabel} × ${shopLabel}）`;
 
-  shopSection.style.display = 'block';
+  shopSection.style.display = 'flex';
   const sorted = entries.sort(([a], [b]) => a.localeCompare(b, 'ja'));
   const total = sorted.reduce((sum, [, qty]) => sum + qty, 0);
 
