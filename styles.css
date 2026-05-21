@@ -32,9 +32,9 @@ body {
 .app-title {
   flex: 1;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  color: #c8c8c8;
+  color: #ffffff;
 }
 
 .app-main {
@@ -68,7 +68,7 @@ body {
 }
 
 .drop-icon  { font-size: 48px; line-height: 1; filter: grayscale(0.3); }
-.drop-primary  { font-size: 17px; font-weight: 600; color: #aaa; letter-spacing: 0.04em; }
+.drop-primary  { font-size: 17px; font-weight: 700; color: #e8e8e8; letter-spacing: 0.04em; }
 .drop-secondary { font-size: 13px; color: #555; }
 
 .open-file-btn {
@@ -121,8 +121,8 @@ body {
 .file-info {
   flex: 1;
   font-size: 12px;
-  color: #555;
-  font-weight: 400;
+  color: #bbb;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -138,7 +138,8 @@ body {
 
 .copy-status {
   font-size: 12px;
-  color: #555;
+  color: #bbb;
+  font-weight: 600;
   min-width: 110px;
   text-align: center;
   letter-spacing: 0.02em;
@@ -160,25 +161,25 @@ body {
 
 .btn-primary {
   background: #1a1a2a;
-  color: #8899cc;
+  color: #aabbff;
   border: 1px solid #334;
 }
-.btn-primary:hover { background: #222238; border-color: #558; color: #aabbee; }
+.btn-primary:hover { background: #222238; border-color: #558; color: #ccdaff; }
 
 .btn-success {
   background: #0a1a0a;
-  color: #669966;
+  color: #88cc88;
   border: 1px solid #2a4a2a;
 }
-.btn-success:hover { background: #111f11; border-color: #3a6a3a; color: #88bb88; }
+.btn-success:hover { background: #111f11; border-color: #3a6a3a; color: #aaffaa; }
 .btn-success:disabled { opacity: 0.4; cursor: default; }
 
 .btn-ghost {
   background: transparent;
-  color: #555;
-  border: 1px solid #2a2a2a;
+  color: #999;
+  border: 1px solid #333;
 }
-.btn-ghost:hover { background: #1a1a1a; border-color: #444; color: #888; }
+.btn-ghost:hover { background: #1a1a1a; border-color: #555; color: #ccc; }
 
 .btn-ghost-inv {
   background: rgba(255,255,255,.05);
@@ -221,9 +222,10 @@ body {
 
 .btn-col-select {
   background: #151515;
-  color: #666;
+  color: #ccc;
   border: 1px solid #2a2a2a;
   font-size: 12px;
+  font-weight: 600;
   padding: 6px 12px;
   white-space: nowrap;
   max-width: 260px;
@@ -231,7 +233,7 @@ body {
   text-overflow: ellipsis;
   letter-spacing: 0.02em;
 }
-.btn-col-select:hover { border-color: #444; color: #999; background: #1a1a1a; }
+.btn-col-select:hover { border-color: #555; color: #fff; background: #1a1a1a; }
 
 .col-dropdown {
   position: absolute;
@@ -265,12 +267,13 @@ body {
   border-radius: 4px;
   font-family: inherit;
   font-size: 12px;
+  font-weight: 600;
   text-align: left;
   transition: background 0.1s;
-  color: #777;
+  color: #ccc;
 }
-.col-dropdown-item:hover { background: #1a1a1a; color: #aaa; }
-.col-dropdown-item.active { background: #151520; color: #8899cc; font-weight: 600; }
+.col-dropdown-item:hover { background: #1a1a1a; color: #fff; }
+.col-dropdown-item.active { background: #151520; color: #aabbff; font-weight: 700; }
 
 .col-letter {
   font-weight: 800;
@@ -323,10 +326,10 @@ body {
   z-index: 10;
   background: #0e0e0e !important;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #444;
+  color: #888;
   border-radius: 4px;
   border-bottom: 1px solid #1a1a1a;
 }
@@ -345,15 +348,17 @@ body {
 
 .original-cell {
   background: #111;
-  color: #444;
-  border: 1px solid #1a1a1a;
+  color: #999;
+  font-weight: 600;
+  border: 1px solid #1e1e1e;
 }
 
 /* 抽出後ボタン（左側） */
 .extracted-btn {
   background: #0f141e;
   border: 1px solid #1e2a40;
-  color: #7a9acc;
+  color: #d0e4ff;
+  font-weight: 700;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
@@ -364,8 +369,8 @@ body {
 
 .extracted-btn:hover {
   background: #141b2e;
-  border-color: #2a4060;
-  color: #99bbee;
+  border-color: #3a5888;
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
@@ -395,13 +400,13 @@ body {
 /* Row numbers */
 .row-num {
   font-size: 10px;
-  color: #2a2a2a;
+  color: #555;
   min-width: 24px;
   text-align: right;
   flex-shrink: 0;
 }
-.extracted-btn .row-num { color: #334; }
-.extracted-btn.seq-active .row-num { color: #664400; }
+.extracted-btn .row-num { color: #667; }
+.extracted-btn.seq-active .row-num { color: #886600; }
 
 /* Cell text */
 .cell-text { flex: 1; word-break: break-all; }
@@ -444,7 +449,7 @@ body {
 .shop-title {
   font-size: 11px;
   font-weight: 700;
-  color: #555;
+  color: #aaa;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -456,7 +461,7 @@ body {
   padding: 3px 10px;
   font-size: 10px;
   font-weight: 700;
-  color: #383838;
+  color: #777;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border-bottom: 1px solid #1a1a1a;
@@ -476,8 +481,8 @@ body {
 .shop-row:last-child { border-bottom: none; }
 .shop-row:hover { background: #151515; }
 
-.shop-name { color: #777; font-size: 13px; }
-.shop-qty { font-weight: 700; color: #8899cc; min-width: 40px; text-align: right; font-size: 13px; }
+.shop-name { color: #ddd; font-size: 13px; font-weight: 600; }
+.shop-qty { font-weight: 700; color: #aabbff; min-width: 40px; text-align: right; font-size: 13px; }
 
 /* 合計行（固定フッター） */
 .shop-total-fixed {
@@ -488,14 +493,14 @@ body {
   border-top: 1px solid #2a2a2a;
   background: #0e0e0e;
   border-radius: 0 0 5px 5px;
-  font-weight: 700;
+  font-weight: 800;
   flex-shrink: 0;
-  color: #aaaacc;
+  color: #ffffff;
   font-size: 13px;
 }
 .shop-total-fixed span:last-child {
-  font-size: 14px;
+  font-size: 15px;
   min-width: 40px;
   text-align: right;
-  color: #aaaacc;
+  color: #ffffff;
 }
