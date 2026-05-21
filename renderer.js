@@ -367,13 +367,10 @@ function renderShopAggregation() {
     shopListEl.appendChild(row);
   });
 
-  // 合計行
-  const totalRow = document.createElement('div');
-  totalRow.className = 'shop-row shop-total-row';
-  totalRow.innerHTML =
-    `<span class="shop-name">合計</span>` +
-    `<span class="shop-qty">${total}</span>`;
-  shopListEl.appendChild(totalRow);
+  // 合計をスクロール外の固定エリアに表示
+  const shopTotal = document.getElementById('shop-total');
+  document.getElementById('shop-total-qty').textContent = total;
+  shopTotal.style.display = '';
 }
 
 // ─── Copy actions ─────────────────────────────────────────────────────────────
