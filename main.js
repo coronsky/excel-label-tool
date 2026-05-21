@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, globalShortcut } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -64,7 +64,17 @@ function createWindow() {
   mainWindow.loadFile('index.html');
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  // PhotoScape X へ次のテキストを貼り付けるグローバルホットキー
+  globalShortcut.register('CommandOrControl+Shift+V', () => {
+    if (mainWindow) mainWindow.webContents.send('global-paste');
+  });
+});
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
