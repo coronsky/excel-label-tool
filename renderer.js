@@ -382,8 +382,10 @@ function pasteToPhotoScapeX(text) {
   clipboard.writeText(text);
 
   const psLines = [
-    '$w = New-Object -ComObject wscript.shell',
-    'if ($w.AppActivate("PhotoScape X")) {',
+    '$proc = Get-Process | Where-Object { ($_.Name -like "*PhotoScape*" -or $_.MainWindowTitle -like "*PhotoScape*") -and $_.MainWindowHandle -ne 0 } | Select-Object -First 1',
+    'if ($proc) {',
+    '  $w = New-Object -ComObject wscript.shell',
+    '  $w.AppActivate($proc.Id)',
     '  Start-Sleep -Milliseconds 600',
     '  $w.SendKeys("^a")',
     '  Start-Sleep -Milliseconds 150',
