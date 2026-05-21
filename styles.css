@@ -136,6 +136,17 @@ body {
   flex-shrink: 0;
 }
 
+.hotkey-hint {
+  font-size: 11px;
+  color: #665500;
+  background: #1a1200;
+  border: 1px solid #3a2e00;
+  border-radius: 4px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
 .copy-status {
   font-size: 12px;
   color: #bbb;

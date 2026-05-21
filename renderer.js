@@ -447,6 +447,35 @@ document.getElementById('ps-paste-btn').addEventListener('click', () => {
   }, 1000);
 });
 
+// Ctrl+Shift+V グローバルホットキー — PhotoScape X にフォーカスを保ったまま貼り付け
+ipcRenderer.on('global-paste', () => {
+  if (allData.length === 0) return;
+  if (copyIndex >= allData.length) copyIndex = 0;
+
+  const item = allData[copyIndex];
+  clipboard.writeText(item.extracted);
+
+  dataGrid.querySelectorAll('.extracted-btn').forEach(b => b.classList.remove('seq-active'));
+  const activeBtn = dataGrid.querySelector(`[data-index="${copyIndex}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('seq-active');
+    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  copyIndex++;
+  updateCopyStatus();
+
+  // PhotoScape X はフォーカスを保持しているのでそのまま Ctrl+A+V を送る
+  const psLines = [
+    '$w = New-Object -ComObject wscript.shell',
+    'Start-Sleep -Milliseconds 150',
+    '$w.SendKeys("^a")',
+    'Start-Sleep -Milliseconds 100',
+    '$w.SendKeys("^v")'
+  ].join('\n');
+  const encoded = Buffer.from(psLines, 'utf16le').toString('base64');
+  exec(`powershell -NoProfile -WindowStyle Hidden -EncodedCommand ${encoded}`);
+});
+
 // ─── Copy actions ─────────────────────────────────────────────────────────────
 
 seqCopyBtn.addEventListener('click', () => {
