@@ -84,7 +84,7 @@ function processFile(filePath, fileName) {
 
     dropZone.style.display = 'none';
     reloadBtn.style.display = '';
-    content.style.display = 'block';
+    content.style.display = 'flex';
     colSelectorsGroup.style.display = '';
 
     nameSelector.updateUI();
