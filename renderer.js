@@ -31,6 +31,12 @@ const openFileBtn       = document.getElementById('open-file-btn');
 const reloadBtn         = document.getElementById('reload-btn');
 const colSelectorsGroup = document.getElementById('col-selectors-group');
 
+// ─── マウスホイールでデータグリッドをスクロール ───────────────────────────────
+document.getElementById('data-grid').addEventListener('wheel', (e) => {
+  const wrapper = document.querySelector('.data-wrapper');
+  wrapper.scrollTop += e.deltaY;
+}, { passive: true });
+
 // ─── Menu: ファイルを開く（main.js から送信） ─────────────────────────────────
 ipcRenderer.on('open-file-path', (_, filePath) => {
   processFile(filePath, path.basename(filePath));
