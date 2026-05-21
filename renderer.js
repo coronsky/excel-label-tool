@@ -373,6 +373,61 @@ function renderShopAggregation() {
   shopTotal.style.display = '';
 }
 
+// ─── PhotoScape X 貼り付け ────────────────────────────────────────────────────
+
+const { exec } = require('child_process');
+
+function pasteToPhotoScapeX(text) {
+  clipboard.writeText(text);
+
+  // PowerShell: PhotoScape X を前面に出して Ctrl+A → Ctrl+V を送信
+  const psLines = [
+    '$w = New-Object -ComObject wscript.shell',
+    'if ($w.AppActivate("PhotoScape X")) {',
+    '  Start-Sleep -Milliseconds 500',
+    '  $w.SendKeys("^a")',
+    '  Start-Sleep -Milliseconds 150',
+    '  $w.SendKeys("^v")',
+    '  exit 0',
+    '} else { exit 1 }'
+  ].join('\n');
+
+  const encoded = Buffer.from(psLines, 'utf16le').toString('base64');
+
+  exec(`powershell -NoProfile -EncodedCommand ${encoded}`, (err) => {
+    const btn = document.getElementById('ps-paste-btn');
+    if (err && err.code === 1) {
+      showError('PhotoScape X が見つかりません。起動してテキストを編集モードにしてください。');
+      const orig = btn.textContent;
+      btn.textContent = '× 見つかりません';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    } else {
+      const orig = btn.textContent;
+      btn.textContent = '✓ 貼り付けました';
+      setTimeout(() => { btn.textContent = orig; }, 1000);
+    }
+  });
+}
+
+document.getElementById('ps-paste-btn').addEventListener('click', () => {
+  if (allData.length === 0) return;
+  if (copyIndex >= allData.length) copyIndex = 0;
+
+  const item = allData[copyIndex];
+  pasteToPhotoScapeX(item.extracted);
+
+  // 同じ行をハイライト
+  dataGrid.querySelectorAll('.extracted-btn').forEach(b => b.classList.remove('seq-active'));
+  const activeBtn = dataGrid.querySelector(`[data-index="${copyIndex}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add('seq-active');
+    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  copyIndex++;
+  updateCopyStatus();
+});
+
 // ─── Copy actions ─────────────────────────────────────────────────────────────
 
 seqCopyBtn.addEventListener('click', () => {
