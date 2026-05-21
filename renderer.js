@@ -8,28 +8,28 @@ const path = require('path');
 let allData = [];
 let shopAggregation = {};
 let copyIndex = 0;
-let currentNameCol  = 1;
+let currentNameCol = 1;
+let currentQtyCol  = 7;   // H列
+let currentShopCol = 8;   // I列
 let storedWorkbook  = null;
 let storedFileName  = '';
-let availableColumns = [];   // [{ index, letter, header }]
+let availableColumns = [];
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
-const dropZone     = document.getElementById('drop-zone');
-const errorMsg     = document.getElementById('error-msg');
-const content      = document.getElementById('content');
-const fileInfoEl   = document.getElementById('file-info');
-const dataGrid     = document.getElementById('data-grid');
-const copyStatusEl = document.getElementById('copy-status');
-const seqCopyBtn   = document.getElementById('seq-copy-btn');
-const resetCopyBtn = document.getElementById('reset-copy-btn');
-const shopSection  = document.getElementById('shop-section');
-const shopListEl   = document.getElementById('shop-list');
-const bulkCopyBtn  = document.getElementById('bulk-copy-btn');
-const openFileBtn  = document.getElementById('open-file-btn');
-const reloadBtn    = document.getElementById('reload-btn');
-const colSelector  = document.getElementById('col-selector');
-const colSelectBtn = document.getElementById('col-select-btn');
-const colDropdown  = document.getElementById('col-dropdown');
+const dropZone          = document.getElementById('drop-zone');
+const errorMsg          = document.getElementById('error-msg');
+const content           = document.getElementById('content');
+const fileInfoEl        = document.getElementById('file-info');
+const dataGrid          = document.getElementById('data-grid');
+const copyStatusEl      = document.getElementById('copy-status');
+const seqCopyBtn        = document.getElementById('seq-copy-btn');
+const resetCopyBtn      = document.getElementById('reset-copy-btn');
+const shopSection       = document.getElementById('shop-section');
+const shopListEl        = document.getElementById('shop-list');
+const bulkCopyBtn       = document.getElementById('bulk-copy-btn');
+const openFileBtn       = document.getElementById('open-file-btn');
+const reloadBtn         = document.getElementById('reload-btn');
+const colSelectorsGroup = document.getElementById('col-selectors-group');
 
 // ─── Menu: ファイルを開く（main.js から送信） ─────────────────────────────────
 ipcRenderer.on('open-file-path', (_, filePath) => {
@@ -37,7 +37,6 @@ ipcRenderer.on('open-file-path', (_, filePath) => {
 });
 
 // ─── Drag & Drop ──────────────────────────────────────────────────────────────
-
 document.addEventListener('dragover', (e) => e.preventDefault());
 document.addEventListener('drop', (e) => {
   e.preventDefault();
@@ -47,27 +46,21 @@ document.addEventListener('drop', (e) => {
   else showError('Excelファイル (.xlsx / .xls) をドロップしてください');
 });
 
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', () => dropZone.classList.remove('drag-over'));
 
 // ─── File dialog ──────────────────────────────────────────────────────────────
-
 openFileBtn.addEventListener('click', async () => {
   const result = await ipcRenderer.invoke('open-file-dialog');
-  if (!result.canceled && result.filePaths.length > 0) {
+  if (!result.canceled && result.filePaths.length > 0)
     processFile(result.filePaths[0], path.basename(result.filePaths[0]));
-  }
 });
 
 reloadBtn.addEventListener('click', async () => {
   const result = await ipcRenderer.invoke('open-file-dialog');
-  if (!result.canceled && result.filePaths.length > 0) {
+  if (!result.canceled && result.filePaths.length > 0)
     processFile(result.filePaths[0], path.basename(result.filePaths[0]));
-  }
 });
 
 // ─── File processing ──────────────────────────────────────────────────────────
@@ -79,14 +72,18 @@ function processFile(filePath, fileName) {
     storedFileName = fileName;
 
     availableColumns = discoverColumns(storedWorkbook);
-    currentNameCol   = autoDetectNameCol(storedWorkbook);
+    currentNameCol   = autoDetectCol(storedWorkbook, ['ラベル名', '名前', 'お名前', 'おなまえ', 'name', '氏名'], 1);
+    currentQtyCol    = autoDetectCol(storedWorkbook, ['枚数', '数量', '枚', 'qty', 'quantity'], 7);
+    currentShopCol   = autoDetectCol(storedWorkbook, ['ショップ', '店舗', '店', 'shop'], 8);
 
     dropZone.style.display = 'none';
     reloadBtn.style.display = '';
     content.style.display = 'block';
-    colSelector.style.display = '';
+    colSelectorsGroup.style.display = '';
 
-    updateColSelectorUI();
+    nameSelector.updateUI();
+    qtySelector.updateUI();
+    shopSelector.updateUI();
     reprocess();
   } catch (err) {
     showError(`読み込み失敗: ${err.message}`);
@@ -100,7 +97,7 @@ function reprocess() {
   copyIndex = 0;
 
   storedWorkbook.SheetNames.forEach(name => {
-    processSheet(storedWorkbook.Sheets[name], name, currentNameCol);
+    processSheet(storedWorkbook.Sheets[name], name);
   });
 
   fileInfoEl.textContent =
@@ -111,12 +108,12 @@ function reprocess() {
   updateCopyStatus();
 }
 
-function processSheet(sheet, sheetName, nameCol) {
+function processSheet(sheet, sheetName) {
   if (!sheet['!ref']) return;
   const range = XLSX.utils.decode_range(sheet['!ref']);
 
   for (let r = 3; r <= range.e.r; r++) {
-    const nameCell = sheet[XLSX.utils.encode_cell({ r, c: nameCol })];
+    const nameCell = sheet[XLSX.utils.encode_cell({ r, c: currentNameCol })];
     if (!nameCell || nameCell.v === undefined || nameCell.v === null) continue;
 
     const original = String(nameCell.v).trim();
@@ -124,9 +121,8 @@ function processSheet(sheet, sheetName, nameCol) {
 
     const extracted = cleanName(original);
 
-    // H col = index 7 (枚数), I col = index 8 (ショップ)
-    const qtyCell  = sheet[XLSX.utils.encode_cell({ r, c: 7 })];
-    const shopCell = sheet[XLSX.utils.encode_cell({ r, c: 8 })];
+    const qtyCell  = sheet[XLSX.utils.encode_cell({ r, c: currentQtyCol })];
+    const shopCell = sheet[XLSX.utils.encode_cell({ r, c: currentShopCol })];
     const qty  = qtyCell  && qtyCell.v ? Math.max(1, Math.round(Number(qtyCell.v) || 1)) : 1;
     const shop = shopCell && shopCell.v ? String(shopCell.v).trim() : '';
 
@@ -139,12 +135,10 @@ function processSheet(sheet, sheetName, nameCol) {
 
 function discoverColumns(wb) {
   const colMap = new Map();
-
   wb.SheetNames.forEach(sheetName => {
     const sheet = wb.Sheets[sheetName];
     if (!sheet['!ref']) return;
     const range = XLSX.utils.decode_range(sheet['!ref']);
-
     for (let c = range.s.c; c <= range.e.c; c++) {
       if (colMap.has(c)) continue;
       let header = '';
@@ -155,12 +149,10 @@ function discoverColumns(wb) {
       colMap.set(c, { index: c, letter: colIndexToLetter(c), header });
     }
   });
-
   return Array.from(colMap.values()).sort((a, b) => a.index - b.index);
 }
 
-function autoDetectNameCol(wb) {
-  const keys = ['ラベル名', '名前', 'お名前', 'おなまえ', 'name', '氏名'];
+function autoDetectCol(wb, keys, defaultCol) {
   for (const sheetName of wb.SheetNames) {
     const sheet = wb.Sheets[sheetName];
     if (!sheet['!ref']) continue;
@@ -175,7 +167,7 @@ function autoDetectNameCol(wb) {
       }
     }
   }
-  return 1;
+  return defaultCol;
 }
 
 function colIndexToLetter(index) {
@@ -188,50 +180,84 @@ function colIndexToLetter(index) {
   return letter;
 }
 
-// ─── Column selector UI ───────────────────────────────────────────────────────
+// ─── Column selector factory ──────────────────────────────────────────────────
+// 3つの列セレクターを同じロジックで生成する
 
-function updateColSelectorUI() {
-  const col = availableColumns.find(c => c.index === currentNameCol);
-  const label = col
-    ? `${col.letter}列 — ${col.header || '（ヘッダーなし）'}`
-    : `${colIndexToLetter(currentNameCol)}列`;
-  colSelectBtn.textContent = `抽出列: ${label} ▼`;
-}
+function createColSelector(btnEl, dropdownEl, getCol, setCol, labelPrefix) {
+  function updateUI() {
+    const col = availableColumns.find(c => c.index === getCol());
+    const label = col
+      ? `${col.letter}列 — ${col.header || '（ヘッダーなし）'}`
+      : `${colIndexToLetter(getCol())}列`;
+    btnEl.textContent = `${labelPrefix}: ${label} ▼`;
+  }
 
-colSelectBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const isOpen = colDropdown.style.display !== 'none';
-  colDropdown.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) buildColDropdown();
-});
+  function buildDropdown() {
+    dropdownEl.innerHTML = '';
+    availableColumns.forEach(col => {
+      const isActive = col.index === getCol();
+      const item = document.createElement('button');
+      item.className = 'col-dropdown-item' + (isActive ? ' active' : '');
+      item.innerHTML =
+        `<span class="col-letter">${col.letter}</span>` +
+        `<span class="col-header-label">${esc(col.header || '（ヘッダーなし）')}</span>` +
+        (isActive ? '<span class="col-check">✓</span>' : '');
 
-document.addEventListener('click', () => {
-  colDropdown.style.display = 'none';
-});
-
-colDropdown.addEventListener('click', (e) => e.stopPropagation());
-
-function buildColDropdown() {
-  colDropdown.innerHTML = '';
-  availableColumns.forEach(col => {
-    const isActive = col.index === currentNameCol;
-    const item = document.createElement('button');
-    item.className = 'col-dropdown-item' + (isActive ? ' active' : '');
-    item.innerHTML =
-      `<span class="col-letter">${col.letter}</span>` +
-      `<span class="col-header-label">${esc(col.header || '（ヘッダーなし）')}</span>` +
-      (isActive ? '<span class="col-check">✓</span>' : '');
-
-    item.addEventListener('click', () => {
-      currentNameCol = col.index;
-      colDropdown.style.display = 'none';
-      updateColSelectorUI();
-      reprocess();
+      item.addEventListener('click', () => {
+        setCol(col.index);
+        closeAllDropdowns();
+        updateUI();
+        reprocess();
+      });
+      dropdownEl.appendChild(item);
     });
+  }
 
-    colDropdown.appendChild(item);
+  btnEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = dropdownEl.style.display !== 'none';
+    closeAllDropdowns();
+    if (!isOpen) {
+      dropdownEl.style.display = 'block';
+      buildDropdown();
+    }
   });
+
+  dropdownEl.addEventListener('click', (e) => e.stopPropagation());
+
+  return { updateUI };
 }
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.col-dropdown').forEach(d => { d.style.display = 'none'; });
+}
+
+document.addEventListener('click', closeAllDropdowns);
+
+// セレクターを初期化（DOM構築後に実行）
+const nameSelector = createColSelector(
+  document.getElementById('col-select-btn'),
+  document.getElementById('col-dropdown'),
+  () => currentNameCol,
+  (v) => { currentNameCol = v; },
+  '抽出列'
+);
+
+const qtySelector = createColSelector(
+  document.getElementById('qty-col-select-btn'),
+  document.getElementById('qty-col-dropdown'),
+  () => currentQtyCol,
+  (v) => { currentQtyCol = v; },
+  '枚数列'
+);
+
+const shopSelector = createColSelector(
+  document.getElementById('shop-col-select-btn'),
+  document.getElementById('shop-col-dropdown'),
+  () => currentShopCol,
+  (v) => { currentShopCol = v; },
+  'ショップ列'
+);
 
 // ─── Name cleaning ────────────────────────────────────────────────────────────
 
@@ -313,6 +339,14 @@ function renderShopAggregation() {
     shopSection.style.display = 'none';
     return;
   }
+
+  // ショップ列のヘッダー名をタイトルに反映
+  const shopColInfo = availableColumns.find(c => c.index === currentShopCol);
+  const qtyColInfo  = availableColumns.find(c => c.index === currentQtyCol);
+  const shopLabel   = shopColInfo && shopColInfo.header ? shopColInfo.header : `${colIndexToLetter(currentShopCol)}列`;
+  const qtyLabel    = qtyColInfo  && qtyColInfo.header  ? qtyColInfo.header  : `${colIndexToLetter(currentQtyCol)}列`;
+  document.querySelector('.shop-title').textContent =
+    `集計（${qtyLabel} × ${shopLabel}）`;
 
   shopSection.style.display = 'block';
   const sorted = entries.sort(([a], [b]) => a.localeCompare(b, 'ja'));

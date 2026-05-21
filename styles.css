@@ -175,6 +175,26 @@ body {
 }
 .btn-ghost-inv:hover { background: rgba(255,255,255,.25); }
 
+/* ─── Column selectors group ────────────────────────────────────────────────── */
+.col-selectors-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  background: #f4f5fb;
+  border: 1px solid #d0d4e8;
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+.col-selector-sep {
+  width: 1px;
+  height: 20px;
+  background: #c8cce0;
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
 /* ─── Column selector ───────────────────────────────────────────────────────── */
 .col-selector {
   position: relative;
