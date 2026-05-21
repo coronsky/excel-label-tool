@@ -313,16 +313,16 @@ function renderData() {
   dataGrid.appendChild(hOrig);
 
   allData.forEach((item, index) => {
-    const extBtn = document.createElement('button');
+    const extBtn = document.createElement('div');
     extBtn.className = 'grid-cell extracted-btn';
     extBtn.dataset.index = index;
     extBtn.innerHTML =
       `<span class="row-num">${index + 1}</span>` +
       `<span class="cell-text">${esc(item.extracted)}</span>` +
-      `<span class="copy-hint">コピー</span>`;
+      `<button class="copy-btn">コピー</button>`;
 
-    extBtn.addEventListener('click', () => {
-      if (window.getSelection().toString().length > 0) return;
+    extBtn.querySelector('.copy-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
       clipboard.writeText(item.extracted);
       flash(extBtn, 'flash-click');
     });

@@ -372,29 +372,38 @@ body {
   border: 1px solid #1e1e1e;
 }
 
-/* 抽出後ボタン（左側） */
+/* 抽出後セル（左側） */
 .extracted-btn {
   background: #0f141e;
   border: 1px solid #1e2a40;
   color: #d0e4ff;
   font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-  font-family: inherit;
   font-size: 13px;
-  width: 100%;
-  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  transition: background 0.12s, border-color 0.12s;
 }
 
 .extracted-btn:hover {
   background: #141b2e;
   border-color: #3a5888;
   color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
-.extracted-btn:active { transform: translateY(0); box-shadow: none; }
+/* コピーボタン */
+.copy-btn {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  background: #1a2238;
+  color: #7a9acc;
+  border: 1px solid #2a3a58;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.copy-btn:hover { background: #223050; border-color: #4a6888; color: #aaccff; }
 
 /* 順番コピー アクティブ */
 .extracted-btn.seq-active {
@@ -431,20 +440,7 @@ body {
 .cell-text { flex: 1; word-break: break-all; }
 .extracted-btn .cell-text { user-select: text; cursor: text; }
 
-/* Copy hint */
-.copy-hint {
-  font-size: 10px;
-  font-weight: 700;
-  color: #334;
-  background: #0e131e;
-  border-radius: 3px;
-  padding: 2px 6px;
-  opacity: 0;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-.extracted-btn:hover .copy-hint { opacity: 1; color: #5577aa; }
-.extracted-btn.seq-active .copy-hint { background: #1a1500; color: #664400; }
+.extracted-btn.seq-active .copy-btn { background: #1a1500; border-color: #4a3800; color: #886600; }
 
 /* ─── Shop section ──────────────────────────────────────────────────────────── */
 .shop-section {
