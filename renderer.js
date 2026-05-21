@@ -375,42 +375,10 @@ function renderShopAggregation() {
 
 // ─── PhotoScape X 貼り付け ────────────────────────────────────────────────────
 
-const { exec } = require('child_process');
-let psPasteActive = false;
-
-function pasteToPhotoScapeX(text) {
-  clipboard.writeText(text);
-
-  const psLines = [
-    '$w = New-Object -ComObject wscript.shell',
-    'if ($w.AppActivate("PhotoScape X")) {',
-    '  Start-Sleep -Milliseconds 300',
-    '  $w.SendKeys("^a")',
-    '  Start-Sleep -Milliseconds 150',
-    '  $w.SendKeys("^v")',
-    '  exit 0',
-    '} else { exit 1 }'
-  ].join('\n');
-
-  const encoded = Buffer.from(psLines, 'utf16le').toString('base64');
-
-  exec(`powershell -NoProfile -EncodedCommand ${encoded}`, (err) => {
-    const btn = document.getElementById('ps-paste-btn');
-    psPasteActive = false;
-    btn.disabled = false;
-    if (err && err.code === 1) {
-      showError('PhotoScape X が見つかりません。起動してテキストを編集モードにしてください。');
-      btn.textContent = '× 見つかりません';
-      setTimeout(() => { btn.textContent = '▶ PhotoScapeに貼り付け'; }, 2000);
-    } else {
-      btn.textContent = '✓ 貼り付けました';
-      setTimeout(() => { btn.textContent = '▶ PhotoScapeに貼り付け'; }, 1000);
-    }
-  });
-}
+let psCounting = false;
 
 document.getElementById('ps-paste-btn').addEventListener('click', () => {
-  if (allData.length === 0 || psPasteActive) return;
+  if (allData.length === 0 || psCounting) return;
   if (copyIndex >= allData.length) copyIndex = 0;
 
   const item = allData[copyIndex];
@@ -427,8 +395,8 @@ document.getElementById('ps-paste-btn').addEventListener('click', () => {
   copyIndex++;
   updateCopyStatus();
 
-  // 3秒カウントダウン後に貼り付け（その間にPhotoScapeでテキスト入力モードに入る）
-  psPasteActive = true;
+  // 3秒カウントダウン — その間にPhotoScapeへ切り替えてCtrl+V
+  psCounting = true;
   const btn = document.getElementById('ps-paste-btn');
   btn.disabled = true;
   let count = 3;
@@ -440,8 +408,10 @@ document.getElementById('ps-paste-btn').addEventListener('click', () => {
       btn.textContent = `PhotoScapeへ切替えて... ${count}`;
     } else {
       clearInterval(timer);
-      btn.textContent = '貼り付け中...';
-      pasteToPhotoScapeX(item.extracted);
+      psCounting = false;
+      btn.disabled = false;
+      btn.textContent = '✓ コピー済み（Ctrl+V で貼り付け）';
+      setTimeout(() => { btn.textContent = '▶ PhotoScapeに貼り付け'; }, 2000);
     }
   }, 1000);
 });
