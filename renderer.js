@@ -5,24 +5,31 @@ const { ipcRenderer, clipboard } = require('electron');
 const path = require('path');
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let allData = [];          // [{ sheet, original, extracted }]
-let shopAggregation = {};  // { shopName: totalQty }
+let allData = [];
+let shopAggregation = {};
 let copyIndex = 0;
+let currentNameCol  = 1;
+let storedWorkbook  = null;
+let storedFileName  = '';
+let availableColumns = [];   // [{ index, letter, header }]
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
-const dropZone      = document.getElementById('drop-zone');
-const errorMsg      = document.getElementById('error-msg');
-const content       = document.getElementById('content');
-const fileInfoEl    = document.getElementById('file-info');
-const dataGrid      = document.getElementById('data-grid');
-const copyStatusEl  = document.getElementById('copy-status');
-const seqCopyBtn    = document.getElementById('seq-copy-btn');
-const resetCopyBtn  = document.getElementById('reset-copy-btn');
-const shopSection   = document.getElementById('shop-section');
-const shopListEl    = document.getElementById('shop-list');
-const bulkCopyBtn   = document.getElementById('bulk-copy-btn');
-const openFileBtn   = document.getElementById('open-file-btn');
-const reloadBtn     = document.getElementById('reload-btn');
+const dropZone     = document.getElementById('drop-zone');
+const errorMsg     = document.getElementById('error-msg');
+const content      = document.getElementById('content');
+const fileInfoEl   = document.getElementById('file-info');
+const dataGrid     = document.getElementById('data-grid');
+const copyStatusEl = document.getElementById('copy-status');
+const seqCopyBtn   = document.getElementById('seq-copy-btn');
+const resetCopyBtn = document.getElementById('reset-copy-btn');
+const shopSection  = document.getElementById('shop-section');
+const shopListEl   = document.getElementById('shop-list');
+const bulkCopyBtn  = document.getElementById('bulk-copy-btn');
+const openFileBtn  = document.getElementById('open-file-btn');
+const reloadBtn    = document.getElementById('reload-btn');
+const colSelector  = document.getElementById('col-selector');
+const colSelectBtn = document.getElementById('col-select-btn');
+const colDropdown  = document.getElementById('col-dropdown');
 
 // ─── Menu: ファイルを開く（main.js から送信） ─────────────────────────────────
 ipcRenderer.on('open-file-path', (_, filePath) => {
@@ -52,51 +59,61 @@ dropZone.addEventListener('drop', () => dropZone.classList.remove('drag-over'));
 openFileBtn.addEventListener('click', async () => {
   const result = await ipcRenderer.invoke('open-file-dialog');
   if (!result.canceled && result.filePaths.length > 0) {
-    const fp = result.filePaths[0];
-    processFile(fp, path.basename(fp));
+    processFile(result.filePaths[0], path.basename(result.filePaths[0]));
   }
 });
 
 reloadBtn.addEventListener('click', async () => {
   const result = await ipcRenderer.invoke('open-file-dialog');
   if (!result.canceled && result.filePaths.length > 0) {
-    const fp = result.filePaths[0];
-    processFile(fp, path.basename(fp));
+    processFile(result.filePaths[0], path.basename(result.filePaths[0]));
   }
 });
 
-// ─── Processing ───────────────────────────────────────────────────────────────
+// ─── File processing ──────────────────────────────────────────────────────────
 
 function processFile(filePath, fileName) {
   try {
     hideError();
-    allData = [];
-    shopAggregation = {};
-    copyIndex = 0;
+    storedWorkbook = XLSX.readFile(filePath);
+    storedFileName = fileName;
 
-    const wb = XLSX.readFile(filePath);
+    availableColumns = discoverColumns(storedWorkbook);
+    currentNameCol   = autoDetectNameCol(storedWorkbook);
 
-    wb.SheetNames.forEach(name => processSheet(wb.Sheets[name], name));
-
-    fileInfoEl.textContent = `${fileName} — ${wb.SheetNames.length}シート / ${allData.length}件`;
     dropZone.style.display = 'none';
     reloadBtn.style.display = '';
     content.style.display = 'block';
+    colSelector.style.display = '';
 
-    renderData();
-    renderShopAggregation();
-    updateCopyStatus();
+    updateColSelectorUI();
+    reprocess();
   } catch (err) {
     showError(`読み込み失敗: ${err.message}`);
     console.error(err);
   }
 }
 
-function processSheet(sheet, sheetName) {
-  if (!sheet['!ref']) return;
+function reprocess() {
+  allData = [];
+  shopAggregation = {};
+  copyIndex = 0;
 
+  storedWorkbook.SheetNames.forEach(name => {
+    processSheet(storedWorkbook.Sheets[name], name, currentNameCol);
+  });
+
+  fileInfoEl.textContent =
+    `${storedFileName} — ${storedWorkbook.SheetNames.length}シート / ${allData.length}件`;
+
+  renderData();
+  renderShopAggregation();
+  updateCopyStatus();
+}
+
+function processSheet(sheet, sheetName, nameCol) {
+  if (!sheet['!ref']) return;
   const range = XLSX.utils.decode_range(sheet['!ref']);
-  const nameCol = findNameColumn(sheet, range);
 
   for (let r = 3; r <= range.e.r; r++) {
     const nameCell = sheet[XLSX.utils.encode_cell({ r, c: nameCol })];
@@ -110,28 +127,110 @@ function processSheet(sheet, sheetName) {
     // H col = index 7 (枚数), I col = index 8 (ショップ)
     const qtyCell  = sheet[XLSX.utils.encode_cell({ r, c: 7 })];
     const shopCell = sheet[XLSX.utils.encode_cell({ r, c: 8 })];
-
-    const qty  = qtyCell  && qtyCell.v  ? Math.max(1, Math.round(Number(qtyCell.v)  || 1)) : 1;
-    const shop = shopCell && shopCell.v  ? String(shopCell.v).trim() : '';
+    const qty  = qtyCell  && qtyCell.v ? Math.max(1, Math.round(Number(qtyCell.v) || 1)) : 1;
+    const shop = shopCell && shopCell.v ? String(shopCell.v).trim() : '';
 
     allData.push({ sheet: sheetName, original, extracted });
-
     if (shop) shopAggregation[shop] = (shopAggregation[shop] || 0) + qty;
   }
 }
 
-function findNameColumn(sheet, range) {
-  const keys = ['ラベル名', '名前', 'お名前', 'おなまえ', 'name', '氏名'];
-  for (let r = 0; r <= Math.min(2, range.e.r); r++) {
+// ─── Column discovery ─────────────────────────────────────────────────────────
+
+function discoverColumns(wb) {
+  const colMap = new Map();
+
+  wb.SheetNames.forEach(sheetName => {
+    const sheet = wb.Sheets[sheetName];
+    if (!sheet['!ref']) return;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+
     for (let c = range.s.c; c <= range.e.c; c++) {
-      const cell = sheet[XLSX.utils.encode_cell({ r, c })];
-      if (cell && cell.v) {
-        const v = String(cell.v).toLowerCase();
-        if (keys.some(k => v.includes(k.toLowerCase()))) return c;
+      if (colMap.has(c)) continue;
+      let header = '';
+      for (let r = 0; r <= Math.min(2, range.e.r); r++) {
+        const cell = sheet[XLSX.utils.encode_cell({ r, c })];
+        if (cell && cell.v) { header = String(cell.v).trim(); break; }
+      }
+      colMap.set(c, { index: c, letter: colIndexToLetter(c), header });
+    }
+  });
+
+  return Array.from(colMap.values()).sort((a, b) => a.index - b.index);
+}
+
+function autoDetectNameCol(wb) {
+  const keys = ['ラベル名', '名前', 'お名前', 'おなまえ', 'name', '氏名'];
+  for (const sheetName of wb.SheetNames) {
+    const sheet = wb.Sheets[sheetName];
+    if (!sheet['!ref']) continue;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    for (let r = 0; r <= Math.min(2, range.e.r); r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const cell = sheet[XLSX.utils.encode_cell({ r, c })];
+        if (cell && cell.v) {
+          const v = String(cell.v).toLowerCase();
+          if (keys.some(k => v.includes(k.toLowerCase()))) return c;
+        }
       }
     }
   }
-  return 1; // default: column B
+  return 1;
+}
+
+function colIndexToLetter(index) {
+  let letter = '';
+  let n = index;
+  do {
+    letter = String.fromCharCode(65 + (n % 26)) + letter;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+  return letter;
+}
+
+// ─── Column selector UI ───────────────────────────────────────────────────────
+
+function updateColSelectorUI() {
+  const col = availableColumns.find(c => c.index === currentNameCol);
+  const label = col
+    ? `${col.letter}列 — ${col.header || '（ヘッダーなし）'}`
+    : `${colIndexToLetter(currentNameCol)}列`;
+  colSelectBtn.textContent = `抽出列: ${label} ▼`;
+}
+
+colSelectBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = colDropdown.style.display !== 'none';
+  colDropdown.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) buildColDropdown();
+});
+
+document.addEventListener('click', () => {
+  colDropdown.style.display = 'none';
+});
+
+colDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+function buildColDropdown() {
+  colDropdown.innerHTML = '';
+  availableColumns.forEach(col => {
+    const isActive = col.index === currentNameCol;
+    const item = document.createElement('button');
+    item.className = 'col-dropdown-item' + (isActive ? ' active' : '');
+    item.innerHTML =
+      `<span class="col-letter">${col.letter}</span>` +
+      `<span class="col-header-label">${esc(col.header || '（ヘッダーなし）')}</span>` +
+      (isActive ? '<span class="col-check">✓</span>' : '');
+
+    item.addEventListener('click', () => {
+      currentNameCol = col.index;
+      colDropdown.style.display = 'none';
+      updateColSelectorUI();
+      reprocess();
+    });
+
+    colDropdown.appendChild(item);
+  });
 }
 
 // ─── Name cleaning ────────────────────────────────────────────────────────────
@@ -139,7 +238,6 @@ function findNameColumn(sheet, range) {
 function cleanName(name) {
   let s = String(name);
 
-  // Remove bracketed content (full-width, half-width, and corner brackets)
   s = s.replace(/（[^）]*）/g, '');
   s = s.replace(/\([^)]*\)/g, '');
   s = s.replace(/【[^】]*】/g, '');
@@ -148,25 +246,20 @@ function cleanName(name) {
   s = s.replace(/〔[^〕]*〕/g, '');
   s = s.replace(/〈[^〉]*〉/g, '');
 
-  // Remove design keywords — try from end repeatedly, then isolated occurrences
-  // Longer keywords first to avoid partial matches (e.g. "スター" before "ス")
   const keywords = ['キラキラ', 'ハート', 'スター', 'リボン', '肉球', 'ほし', '星', '花'];
 
   let prev;
   do {
     prev = s;
     for (const kw of keywords) {
-      // From the end (with optional preceding separator)
       s = s.replace(new RegExp('[\\s　・×,、。]*' + kw + '[\\s　]*$'), '');
-      // Isolated: surrounded by whitespace/separators or string boundaries
       s = s.replace(
-        new RegExp('(^|[\\s　・,、。])'  + kw + '($|[\\s　・,、。])', 'g'),
+        new RegExp('(^|[\\s　・,、。])' + kw + '($|[\\s　・,、。])', 'g'),
         '$1$2'
       );
     }
   } while (s !== prev);
 
-  // Normalise whitespace
   s = s.replace(/[\s　]+/g, ' ').trim();
   return s;
 }
@@ -176,7 +269,6 @@ function cleanName(name) {
 function renderData() {
   dataGrid.innerHTML = '';
 
-  // Sticky column headers as first grid row
   const hOrig = document.createElement('div');
   hOrig.className = 'grid-cell grid-col-header';
   hOrig.textContent = 'オリジナル';
@@ -189,14 +281,12 @@ function renderData() {
   dataGrid.appendChild(hExt);
 
   allData.forEach((item, index) => {
-    // Original (left)
     const origCell = document.createElement('div');
     origCell.className = 'grid-cell original-cell';
     origCell.innerHTML =
       `<span class="row-num">${index + 1}</span>` +
       `<span class="cell-text">${esc(item.original)}</span>`;
 
-    // Extracted button (right)
     const extBtn = document.createElement('button');
     extBtn.className = 'grid-cell extracted-btn';
     extBtn.dataset.index = index;
@@ -245,7 +335,6 @@ seqCopyBtn.addEventListener('click', () => {
 
   clipboard.writeText(allData[copyIndex].extracted);
 
-  // Highlight active row
   dataGrid.querySelectorAll('.extracted-btn').forEach(b => b.classList.remove('seq-active'));
   const activeBtn = dataGrid.querySelector(`[data-index="${copyIndex}"]`);
   if (activeBtn) {
@@ -285,7 +374,7 @@ function updateCopyStatus() {
 
 function flash(el, cls) {
   el.classList.remove('flash-click', 'flash-seq');
-  void el.offsetWidth; // reflow to restart animation
+  void el.offsetWidth;
   el.classList.add(cls);
   setTimeout(() => el.classList.remove(cls), 600);
 }

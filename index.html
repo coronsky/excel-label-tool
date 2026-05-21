@@ -32,6 +32,15 @@
         <!-- Toolbar -->
         <div class="toolbar">
           <div id="file-info" class="file-info"></div>
+
+          <!-- 抽出列セレクター -->
+          <div id="col-selector" class="col-selector" style="display:none">
+            <div class="col-select-wrap">
+              <button id="col-select-btn" class="btn btn-col-select">抽出列 ▼</button>
+              <div id="col-dropdown" class="col-dropdown" style="display:none"></div>
+            </div>
+          </div>
+
           <div class="toolbar-actions">
             <button id="seq-copy-btn" class="btn btn-primary">▶ 順番コピー</button>
             <span id="copy-status" class="copy-status">0 / 0 コピー済み</span>
