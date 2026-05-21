@@ -301,24 +301,18 @@ function cleanName(name) {
 function renderData() {
   dataGrid.innerHTML = '';
 
-  const hOrig = document.createElement('div');
-  hOrig.className = 'grid-cell grid-col-header';
-  hOrig.textContent = 'オリジナル';
-
   const hExt = document.createElement('div');
   hExt.className = 'grid-cell grid-col-header';
   hExt.textContent = '抽出後（クリックでコピー）';
 
-  dataGrid.appendChild(hOrig);
+  const hOrig = document.createElement('div');
+  hOrig.className = 'grid-cell grid-col-header';
+  hOrig.textContent = 'オリジナル';
+
   dataGrid.appendChild(hExt);
+  dataGrid.appendChild(hOrig);
 
   allData.forEach((item, index) => {
-    const origCell = document.createElement('div');
-    origCell.className = 'grid-cell original-cell';
-    origCell.innerHTML =
-      `<span class="row-num">${index + 1}</span>` +
-      `<span class="cell-text">${esc(item.original)}</span>`;
-
     const extBtn = document.createElement('button');
     extBtn.className = 'grid-cell extracted-btn';
     extBtn.dataset.index = index;
@@ -332,8 +326,14 @@ function renderData() {
       flash(extBtn, 'flash-click');
     });
 
-    dataGrid.appendChild(origCell);
+    const origCell = document.createElement('div');
+    origCell.className = 'grid-cell original-cell';
+    origCell.innerHTML =
+      `<span class="row-num">${index + 1}</span>` +
+      `<span class="cell-text">${esc(item.original)}</span>`;
+
     dataGrid.appendChild(extBtn);
+    dataGrid.appendChild(origCell);
   });
 }
 
