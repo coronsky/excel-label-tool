@@ -384,7 +384,7 @@ function pasteToPhotoScapeX(text) {
   const psLines = [
     '$w = New-Object -ComObject wscript.shell',
     'if ($w.AppActivate("PhotoScape X")) {',
-    '  Start-Sleep -Milliseconds 300',
+    '  Start-Sleep -Milliseconds 600',
     '  $w.SendKeys("^a")',
     '  Start-Sleep -Milliseconds 150',
     '  $w.SendKeys("^v")',
@@ -395,7 +395,7 @@ function pasteToPhotoScapeX(text) {
   const encoded = Buffer.from(psLines, 'utf16le').toString('base64');
   const btn = document.getElementById('ps-paste-btn');
 
-  exec(`powershell -NoProfile -EncodedCommand ${encoded}`, (err) => {
+  exec(`powershell -NoProfile -WindowStyle Hidden -EncodedCommand ${encoded}`, (err) => {
     psCounting = false;
     btn.disabled = false;
     if (err && err.code === 1) {
