@@ -181,6 +181,14 @@ body {
 }
 .btn-ghost:hover { background: #1a1a1a; border-color: #555; color: #ccc; }
 
+.btn-photoscape {
+  background: #1a1200;
+  color: #ffcc66;
+  border: 1px solid #4a3800;
+}
+.btn-photoscape:hover { background: #2a1e00; border-color: #7a5a00; color: #ffe099; }
+.btn-photoscape:disabled { opacity: 0.4; cursor: default; }
+
 .btn-ghost-inv {
   background: rgba(255,255,255,.05);
   color: #777;
