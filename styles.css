@@ -175,6 +175,108 @@ body {
 }
 .btn-ghost-inv:hover { background: rgba(255,255,255,.25); }
 
+/* ─── Column selector ───────────────────────────────────────────────────────── */
+.col-selector {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.col-select-wrap {
+  position: relative;
+}
+
+.btn-col-select {
+  background: #fff;
+  color: #334;
+  border: 1.5px solid #c0c8e0;
+  font-size: 13px;
+  padding: 7px 14px;
+  white-space: nowrap;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-col-select:hover {
+  border-color: #2d3a8c;
+  color: #2d3a8c;
+  background: #f0f2fc;
+}
+
+.col-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 240px;
+  max-width: 380px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1.5px solid #c0c8e0;
+  border-radius: 9px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 4px;
+}
+
+.col-dropdown::-webkit-scrollbar { width: 6px; }
+.col-dropdown::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+.col-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.1s;
+  color: #334;
+}
+
+.col-dropdown-item:hover { background: #f0f4ff; }
+
+.col-dropdown-item.active {
+  background: #e8f0ff;
+  color: #2d3a8c;
+  font-weight: 600;
+}
+
+.col-letter {
+  font-weight: 800;
+  font-size: 12px;
+  color: #2d3a8c;
+  background: #dce6ff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  min-width: 34px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.col-dropdown-item.active .col-letter {
+  background: #2d3a8c;
+  color: #fff;
+}
+
+.col-header-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-check {
+  color: #2d3a8c;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* ─── Data grid ─────────────────────────────────────────────────────────────── */
 .data-wrapper {
   flex: 1;
