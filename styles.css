@@ -503,6 +503,16 @@ body {
 .shop-row:last-child { border-bottom: none; }
 .shop-row:hover { background: #f6f7fc; }
 
+.shop-total-row {
+  border-top: 2px solid #c0c8e8;
+  margin-top: 2px;
+  font-weight: 700;
+  background: #f0f2fc;
+}
+.shop-total-row:hover { background: #e8ecf8; }
+.shop-total-row .shop-name { color: #2d3a8c; }
+.shop-total-row .shop-qty  { color: #2d3a8c; font-size: 15px; }
+
 .shop-name { color: #334; }
 .shop-qty {
   font-weight: 700;

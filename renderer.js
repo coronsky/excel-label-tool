@@ -356,6 +356,7 @@ function renderShopAggregation() {
 
   shopSection.style.display = 'block';
   const sorted = entries.sort(([a], [b]) => a.localeCompare(b, 'ja'));
+  const total = sorted.reduce((sum, [, qty]) => sum + qty, 0);
 
   sorted.forEach(([shop, qty]) => {
     const row = document.createElement('div');
@@ -365,6 +366,14 @@ function renderShopAggregation() {
       `<span class="shop-qty">${qty}</span>`;
     shopListEl.appendChild(row);
   });
+
+  // 合計行
+  const totalRow = document.createElement('div');
+  totalRow.className = 'shop-row shop-total-row';
+  totalRow.innerHTML =
+    `<span class="shop-name">合計</span>` +
+    `<span class="shop-qty">${total}</span>`;
+  shopListEl.appendChild(totalRow);
 }
 
 // ─── Copy actions ─────────────────────────────────────────────────────────────
