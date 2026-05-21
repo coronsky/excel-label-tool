@@ -33,12 +33,32 @@
         <div class="toolbar">
           <div id="file-info" class="file-info"></div>
 
-          <!-- 抽出列セレクター -->
-          <div id="col-selector" class="col-selector" style="display:none">
-            <div class="col-select-wrap">
-              <button id="col-select-btn" class="btn btn-col-select">抽出列 ▼</button>
-              <div id="col-dropdown" class="col-dropdown" style="display:none"></div>
+          <!-- 列セレクターグループ -->
+          <div id="col-selectors-group" class="col-selectors-group" style="display:none">
+
+            <div class="col-selector">
+              <div class="col-select-wrap">
+                <button id="col-select-btn" class="btn btn-col-select">抽出列 ▼</button>
+                <div id="col-dropdown" class="col-dropdown" style="display:none"></div>
+              </div>
             </div>
+
+            <div class="col-selector-sep"></div>
+
+            <div class="col-selector">
+              <div class="col-select-wrap">
+                <button id="qty-col-select-btn" class="btn btn-col-select">枚数列 ▼</button>
+                <div id="qty-col-dropdown" class="col-dropdown" style="display:none"></div>
+              </div>
+            </div>
+
+            <div class="col-selector">
+              <div class="col-select-wrap">
+                <button id="shop-col-select-btn" class="btn btn-col-select">ショップ列 ▼</button>
+                <div id="shop-col-dropdown" class="col-dropdown" style="display:none"></div>
+              </div>
+            </div>
+
           </div>
 
           <div class="toolbar-actions">
