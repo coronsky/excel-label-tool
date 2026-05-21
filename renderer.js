@@ -322,6 +322,7 @@ function renderData() {
       `<span class="copy-hint">コピー</span>`;
 
     extBtn.addEventListener('click', () => {
+      if (window.getSelection().toString().length > 0) return;
       clipboard.writeText(item.extracted);
       flash(extBtn, 'flash-click');
     });
