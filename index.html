@@ -76,9 +76,17 @@
               </div>
             </div>
 
+            <div class="col-selector">
+              <div class="col-select-wrap">
+                <button id="deco-col-select-btn" class="btn btn-col-select">デコ列 ▼</button>
+                <div id="deco-col-dropdown" class="col-dropdown" style="display:none"></div>
+              </div>
+            </div>
+
           </div>
 
           <div class="toolbar-actions">
+            <button id="png-export-btn" class="btn btn-export-toggle">🖼 PNG書き出し</button>
             <button id="ps-paste-btn" class="btn btn-photoscape">▶ PhotoScapeに貼り付け</button>
             <span class="hotkey-hint">PS内で Ctrl+Shift+V</span>
             <span id="copy-status" class="copy-status">0 / 0 コピー済み</span>
@@ -90,6 +98,28 @@
         <div class="data-wrapper">
           <div id="data-grid" class="data-grid">
             <!-- Headers and rows rendered by JS -->
+          </div>
+        </div>
+
+        <!-- PNG Export Panel -->
+        <div id="export-panel" class="export-panel" style="display:none">
+          <div class="export-row">
+            <span class="export-label">保存フォルダ</span>
+            <span id="export-dir-label" class="export-path">未選択</span>
+            <button id="export-dir-btn" class="btn btn-ghost">選択</button>
+          </div>
+          <div class="export-row">
+            <span class="export-label">肉球画像</span>
+            <span id="paw-path-label" class="export-path">C:\Users\hiro\Pictures\image.png</span>
+            <button id="paw-path-btn" class="btn btn-ghost">変更</button>
+          </div>
+          <div class="export-row">
+            <span class="export-label">ラベルサイズ</span>
+            <input id="label-width" type="number" value="800" class="size-input"> × <input id="label-height" type="number" value="200" class="size-input"> px
+          </div>
+          <div class="export-row">
+            <button id="export-generate-btn" class="btn btn-export">▶ PNG 一括生成</button>
+            <span id="export-progress" class="export-progress"></span>
           </div>
         </div>
 
