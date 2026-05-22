@@ -8,9 +8,11 @@ const path = require('path');
 let allData = [];
 let shopAggregation = {};
 let copyIndex = 0;
-let currentNameCol = 1;
-let currentQtyCol  = 7;   // H列
-let currentShopCol = 8;   // I列
+let currentNameCol  = 1;
+let currentQtyCol   = 7;   // H列
+let currentShopCol  = 8;   // I列
+let currentColorCol = 5;   // F列
+let currentFontCol  = 6;   // G列
 let storedWorkbook  = null;
 let storedFileName  = '';
 let availableColumns = [];
@@ -81,6 +83,8 @@ function processFile(filePath, fileName) {
     currentNameCol   = autoDetectCol(storedWorkbook, ['ラベル名', '名前', 'お名前', 'おなまえ', 'name', '氏名'], 1);
     currentQtyCol    = autoDetectCol(storedWorkbook, ['枚数', '数量', '枚', 'qty', 'quantity'], 7);
     currentShopCol   = autoDetectCol(storedWorkbook, ['ショップ', '店舗', '店', 'shop'], 8);
+    currentColorCol  = autoDetectCol(storedWorkbook, ['色', 'カラー', 'color', 'colour'], 5);
+    currentFontCol   = autoDetectCol(storedWorkbook, ['字体', 'フォント', 'font', '書体'], 6);
 
     dropZone.style.display = 'none';
     reloadBtn.style.display = '';
@@ -90,6 +94,8 @@ function processFile(filePath, fileName) {
     nameSelector.updateUI();
     qtySelector.updateUI();
     shopSelector.updateUI();
+    colorSelector.updateUI();
+    fontSelector.updateUI();
     reprocess();
   } catch (err) {
     showError(`読み込み失敗: ${err.message}`);
@@ -127,12 +133,16 @@ function processSheet(sheet, sheetName) {
 
     const extracted = cleanName(original);
 
-    const qtyCell  = sheet[XLSX.utils.encode_cell({ r, c: currentQtyCol })];
-    const shopCell = sheet[XLSX.utils.encode_cell({ r, c: currentShopCol })];
-    const qty  = qtyCell  && qtyCell.v ? Math.max(1, Math.round(Number(qtyCell.v) || 1)) : 1;
-    const shop = shopCell && shopCell.v ? String(shopCell.v).trim() : '';
+    const qtyCell   = sheet[XLSX.utils.encode_cell({ r, c: currentQtyCol })];
+    const shopCell  = sheet[XLSX.utils.encode_cell({ r, c: currentShopCol })];
+    const colorCell = currentColorCol >= 0 ? sheet[XLSX.utils.encode_cell({ r, c: currentColorCol })] : null;
+    const fontCell  = currentFontCol  >= 0 ? sheet[XLSX.utils.encode_cell({ r, c: currentFontCol  })] : null;
+    const qty   = qtyCell   && qtyCell.v   ? Math.max(1, Math.round(Number(qtyCell.v) || 1)) : 1;
+    const shop  = shopCell  && shopCell.v  ? String(shopCell.v).trim()  : '';
+    const color = colorCell && colorCell.v ? String(colorCell.v).trim() : '';
+    const font  = fontCell  && fontCell.v  ? String(fontCell.v).trim()  : '';
 
-    allData.push({ sheet: sheetName, original, extracted });
+    allData.push({ sheet: sheetName, original, extracted, color, font });
     if (shop) shopAggregation[shop] = (shopAggregation[shop] || 0) + qty;
   }
 }
@@ -189,8 +199,12 @@ function colIndexToLetter(index) {
 // ─── Column selector factory ──────────────────────────────────────────────────
 // 3つの列セレクターを同じロジックで生成する
 
-function createColSelector(btnEl, dropdownEl, getCol, setCol, labelPrefix) {
+function createColSelector(btnEl, dropdownEl, getCol, setCol, labelPrefix, nullable = false) {
   function updateUI() {
+    if (getCol() === -1) {
+      btnEl.textContent = `${labelPrefix}: なし ▼`;
+      return;
+    }
     const col = availableColumns.find(c => c.index === getCol());
     const label = col
       ? `${col.letter}列 — ${col.header || '（ヘッダーなし）'}`
@@ -200,6 +214,21 @@ function createColSelector(btnEl, dropdownEl, getCol, setCol, labelPrefix) {
 
   function buildDropdown() {
     dropdownEl.innerHTML = '';
+    if (nullable) {
+      const noneItem = document.createElement('button');
+      noneItem.className = 'col-dropdown-item' + (getCol() === -1 ? ' active' : '');
+      noneItem.innerHTML =
+        `<span class="col-letter">—</span>` +
+        `<span class="col-header-label">なし（非表示）</span>` +
+        (getCol() === -1 ? '<span class="col-check">✓</span>' : '');
+      noneItem.addEventListener('click', () => {
+        setCol(-1);
+        closeAllDropdowns();
+        updateUI();
+        reprocess();
+      });
+      dropdownEl.appendChild(noneItem);
+    }
     availableColumns.forEach(col => {
       const isActive = col.index === getCol();
       const item = document.createElement('button');
@@ -265,6 +294,24 @@ const shopSelector = createColSelector(
   'ショップ列'
 );
 
+const colorSelector = createColSelector(
+  document.getElementById('color-col-select-btn'),
+  document.getElementById('color-col-dropdown'),
+  () => currentColorCol,
+  (v) => { currentColorCol = v; },
+  '色列',
+  true
+);
+
+const fontSelector = createColSelector(
+  document.getElementById('font-col-select-btn'),
+  document.getElementById('font-col-dropdown'),
+  () => currentFontCol,
+  (v) => { currentFontCol = v; },
+  '字体列',
+  true
+);
+
 // ─── Name cleaning ────────────────────────────────────────────────────────────
 
 function cleanName(name) {
@@ -319,6 +366,8 @@ function renderData() {
     extBtn.innerHTML =
       `<span class="row-num">${index + 1}</span>` +
       `<span class="cell-text">${esc(item.extracted)}</span>` +
+      (item.color ? `<span class="cell-badge color-badge">${esc(item.color)}</span>` : '') +
+      (item.font  ? `<span class="cell-badge font-badge">${esc(item.font)}</span>`  : '') +
       `<button class="copy-btn">コピー</button>`;
 
     extBtn.querySelector('.copy-btn').addEventListener('click', (e) => {
