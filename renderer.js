@@ -1,7 +1,7 @@
 'use strict';
 
 const XLSX = require('xlsx');
-const { ipcRenderer, clipboard } = require('electron');
+const { ipcRenderer, clipboard, nativeImage } = require('electron');
 const path = require('path');
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -641,6 +641,121 @@ bulkCopyBtn.addEventListener('click', () => {
     bulkCopyBtn.textContent = orig;
     bulkCopyBtn.disabled = false;
   }, 1500);
+});
+
+// ─── Clipboard History ────────────────────────────────────────────────────────
+
+const MAX_CLIP  = 30;
+let clipHistory = [];
+let _lastText   = null;
+let _lastImgFp  = '';
+
+function clipMonitor() {
+  try {
+    const fmts   = clipboard.availableFormats();
+    const hasImg = fmts.some(f => f.startsWith('image/'));
+
+    if (hasImg) {
+      const img = clipboard.readImage();
+      if (img.isEmpty()) return;
+      const fp = img.toDataURL().slice(0, 200);
+      if (fp === _lastImgFp) return;
+      _lastImgFp = fp;
+      _lastText  = null;
+      const full  = img.toDataURL();
+      const thumb = img.resize({ width: 220 }).toDataURL();
+      addToClipHistory({ type: 'image', dataUrl: full, thumb, ts: Date.now() });
+    } else {
+      const text = clipboard.readText();
+      if (!text || text === _lastText) return;
+      _lastText  = text;
+      _lastImgFp = '';
+      addToClipHistory({ type: 'text', content: text, ts: Date.now() });
+    }
+  } catch(e) {}
+}
+
+function addToClipHistory(item) {
+  if (item.type === 'text')
+    clipHistory = clipHistory.filter(h => !(h.type === 'text' && h.content === item.content));
+  clipHistory.unshift(item);
+  if (clipHistory.length > MAX_CLIP) clipHistory.length = MAX_CLIP;
+  renderClipHistory();
+}
+
+function renderClipHistory() {
+  const list = document.getElementById('clip-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (clipHistory.length === 0) {
+    list.innerHTML = '<div class="clip-empty">コピーした内容がここに表示されます</div>';
+    return;
+  }
+
+  clipHistory.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className = 'clip-item';
+
+    const preview = document.createElement('div');
+    preview.className = 'clip-preview';
+
+    if (item.type === 'text') {
+      preview.classList.add('clip-text-preview');
+      preview.textContent = item.content.length > 80
+        ? item.content.slice(0, 80) + '…' : item.content;
+    } else {
+      preview.classList.add('clip-img-preview');
+      const img = document.createElement('img');
+      img.src = item.thumb;
+      preview.appendChild(img);
+    }
+
+    const acts = document.createElement('div');
+    acts.className = 'clip-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-ghost clip-copy-btn';
+    copyBtn.textContent = 'コピー';
+    copyBtn.addEventListener('click', () => {
+      if (item.type === 'text') {
+        clipboard.writeText(item.content);
+        _lastText = item.content;
+      } else {
+        clipboard.writeImage(nativeImage.createFromDataURL(item.dataUrl));
+        _lastImgFp = item.dataUrl.slice(0, 200);
+      }
+      copyBtn.textContent = '✓';
+      setTimeout(() => { copyBtn.textContent = 'コピー'; }, 800);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-ghost clip-del-btn';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', () => {
+      clipHistory.splice(idx, 1);
+      renderClipHistory();
+    });
+
+    acts.appendChild(copyBtn);
+    acts.appendChild(delBtn);
+    el.appendChild(preview);
+    el.appendChild(acts);
+    list.appendChild(el);
+  });
+}
+
+setInterval(clipMonitor, 500);
+
+document.getElementById('clip-btn').addEventListener('click', () => {
+  const panel = document.getElementById('clip-panel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  if (panel.style.display === 'flex') renderClipHistory();
+});
+
+document.getElementById('clip-clear-btn').addEventListener('click', () => {
+  clipHistory = []; _lastText = null; _lastImgFp = '';
+  renderClipHistory();
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

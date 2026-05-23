@@ -86,6 +86,7 @@
           </div>
 
           <div class="toolbar-actions">
+            <button id="clip-btn" class="btn btn-clip">📋 履歴</button>
             <button id="png-export-btn" class="btn btn-export-toggle">🖼 PNG書き出し</button>
             <button id="ps-paste-btn" class="btn btn-photoscape">▶ PhotoScapeに貼り付け</button>
             <span class="hotkey-hint">PS内で Ctrl+Shift+V</span>
@@ -99,6 +100,15 @@
           <div id="data-grid" class="data-grid">
             <!-- Headers and rows rendered by JS -->
           </div>
+        </div>
+
+        <!-- Clipboard History Panel -->
+        <div id="clip-panel" class="clip-panel" style="display:none">
+          <div class="clip-panel-header">
+            <span class="clip-panel-title">📋 クリップボード履歴</span>
+            <button id="clip-clear-btn" class="btn btn-ghost">全消去</button>
+          </div>
+          <div id="clip-list" class="clip-list"></div>
         </div>
 
         <!-- PNG Export Panel -->
