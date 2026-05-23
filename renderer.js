@@ -13,10 +13,7 @@ let currentQtyCol   = 7;   // H列
 let currentShopCol  = 8;   // I列
 let currentColorCol = 5;   // F列
 let currentFontCol  = 6;   // G列
-let currentDecoCol  = -1;  // デコ列（なし）
 let storedWorkbook  = null;
-let exportDir       = '';
-let pawImagePath    = 'C:\\Users\\hiro\\Pictures\\image.png';
 let storedFileName  = '';
 let availableColumns = [];
 
@@ -88,7 +85,6 @@ function processFile(filePath, fileName) {
     currentShopCol   = autoDetectCol(storedWorkbook, ['ショップ', '店舗', '店', 'shop'], 8);
     currentColorCol  = autoDetectCol(storedWorkbook, ['色', 'カラー', 'color', 'colour'], 5);
     currentFontCol   = autoDetectCol(storedWorkbook, ['字体', 'フォント', 'font', '書体'], 6);
-    currentDecoCol   = autoDetectCol(storedWorkbook, ['デコ', 'deco', '装飾'], -1);
 
     dropZone.style.display = 'none';
     reloadBtn.style.display = '';
@@ -100,7 +96,6 @@ function processFile(filePath, fileName) {
     shopSelector.updateUI();
     colorSelector.updateUI();
     fontSelector.updateUI();
-    decoSelector.updateUI();
     reprocess();
   } catch (err) {
     showError(`読み込み失敗: ${err.message}`);
@@ -142,14 +137,12 @@ function processSheet(sheet, sheetName) {
     const shopCell  = sheet[XLSX.utils.encode_cell({ r, c: currentShopCol })];
     const colorCell = currentColorCol >= 0 ? sheet[XLSX.utils.encode_cell({ r, c: currentColorCol })] : null;
     const fontCell  = currentFontCol  >= 0 ? sheet[XLSX.utils.encode_cell({ r, c: currentFontCol  })] : null;
-    const decoCell  = currentDecoCol  >= 0 ? sheet[XLSX.utils.encode_cell({ r, c: currentDecoCol  })] : null;
     const qty   = qtyCell   && qtyCell.v   ? Math.max(1, Math.round(Number(qtyCell.v) || 1)) : 1;
     const shop  = shopCell  && shopCell.v  ? String(shopCell.v).trim()  : '';
     const color = colorCell && colorCell.v ? String(colorCell.v).trim() : '';
     const font  = fontCell  && fontCell.v  ? String(fontCell.v).trim()  : '';
-    const deco  = decoCell  && decoCell.v  ? String(decoCell.v).trim()  : '';
 
-    allData.push({ sheet: sheetName, original, extracted, color, font, deco });
+    allData.push({ sheet: sheetName, original, extracted, color, font });
     if (shop) shopAggregation[shop] = (shopAggregation[shop] || 0) + qty;
   }
 }
@@ -319,14 +312,6 @@ const fontSelector = createColSelector(
   true
 );
 
-const decoSelector = createColSelector(
-  document.getElementById('deco-col-select-btn'),
-  document.getElementById('deco-col-dropdown'),
-  () => currentDecoCol,
-  (v) => { currentDecoCol = v; },
-  'デコ列',
-  true
-);
 
 // ─── Name cleaning ────────────────────────────────────────────────────────────
 
@@ -540,68 +525,6 @@ ipcRenderer.on('global-paste', () => {
   ].join('\n');
   const encoded = Buffer.from(psLines, 'utf16le').toString('base64');
   exec(`powershell -NoProfile -WindowStyle Hidden -EncodedCommand ${encoded}`);
-});
-
-// ─── PNG Export ──────────────────────────────────────────────────────────────
-
-document.getElementById('png-export-btn').addEventListener('click', () => {
-  const panel = document.getElementById('export-panel');
-  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-  document.getElementById('paw-path-label').textContent = pawImagePath;
-  document.getElementById('export-dir-label').textContent = exportDir || '未選択';
-});
-
-document.getElementById('export-dir-btn').addEventListener('click', async () => {
-  const result = await ipcRenderer.invoke('select-output-dir');
-  if (!result.canceled && result.filePaths.length > 0) {
-    exportDir = result.filePaths[0];
-    document.getElementById('export-dir-label').textContent = exportDir;
-  }
-});
-
-document.getElementById('paw-path-btn').addEventListener('click', async () => {
-  const result = await ipcRenderer.invoke('select-paw-image');
-  if (!result.canceled && result.filePaths.length > 0) {
-    pawImagePath = result.filePaths[0];
-    document.getElementById('paw-path-label').textContent = pawImagePath;
-  }
-});
-
-document.getElementById('export-generate-btn').addEventListener('click', async () => {
-  if (allData.length === 0) return showError('先にExcelファイルを読み込んでください');
-  if (!exportDir) return showError('保存フォルダを選択してください');
-
-  const width  = parseInt(document.getElementById('label-width').value)  || 800;
-  const height = parseInt(document.getElementById('label-height').value) || 200;
-
-  const btn = document.getElementById('export-generate-btn');
-  const prog = document.getElementById('export-progress');
-  btn.disabled = true;
-  prog.textContent = `準備中...`;
-
-  const labels = allData.map(d => ({
-    name:  d.extracted,
-    color: d.color || '黒',
-    font:  d.font  || '',
-    deco:  d.deco  || '',
-  }));
-
-  try {
-    const result = await ipcRenderer.invoke('generate-labels', {
-      labels,
-      settings: { outputDir: exportDir, width, height, pawImagePath }
-    });
-    prog.textContent = `✓ ${result.count}件 書き出し完了 → ${result.outputDir}`;
-    if (result.errors.length > 0) showError('一部エラー: ' + result.errors.join(' / '));
-  } catch(e) {
-    showError('書き出し失敗: ' + e.message);
-    prog.textContent = '';
-  }
-  btn.disabled = false;
-});
-
-ipcRenderer.on('label-gen-progress', (_, { current, total }) => {
-  document.getElementById('export-progress').textContent = `生成中... ${current} / ${total}`;
 });
 
 // ─── Copy actions ─────────────────────────────────────────────────────────────
