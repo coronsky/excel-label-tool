@@ -136,6 +136,104 @@ body {
   flex-shrink: 0;
 }
 
+.btn-clip {
+  background: #0e1218;
+  color: #7799cc;
+  border: 1px solid #1e2a3a;
+}
+.btn-clip:hover { background: #141c28; border-color: #2e4a6a; color: #99bbee; }
+
+/* ─── Clipboard History Panel ───────────────────────────────────────────────── */
+.clip-panel {
+  flex-shrink: 0;
+  background: #0a0e14;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+}
+
+.clip-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid #1a2030;
+  flex-shrink: 0;
+}
+
+.clip-panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7799cc;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.clip-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px;
+}
+.clip-list::-webkit-scrollbar { width: 5px; }
+.clip-list::-webkit-scrollbar-track { background: #0a0e14; }
+.clip-list::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 3px; }
+
+.clip-empty {
+  padding: 14px;
+  font-size: 12px;
+  color: #445;
+  text-align: center;
+}
+
+.clip-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border-bottom: 1px solid #111620;
+  transition: background 0.1s;
+}
+.clip-item:hover { background: #111820; }
+.clip-item:last-child { border-bottom: none; }
+
+.clip-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.clip-text-preview {
+  font-size: 12px;
+  color: #ccd8ee;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
+  cursor: text;
+}
+
+.clip-img-preview img {
+  max-height: 48px;
+  max-width: 200px;
+  border-radius: 3px;
+  border: 1px solid #222;
+  display: block;
+}
+
+.clip-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.clip-copy-btn { font-size: 11px; padding: 3px 10px; }
+.clip-del-btn  { font-size: 11px; padding: 3px 8px; color: #664; }
+.clip-del-btn:hover { color: #cc6666; border-color: #664; }
+
 .btn-export-toggle {
   background: #0e1a12;
   color: #66bb88;
